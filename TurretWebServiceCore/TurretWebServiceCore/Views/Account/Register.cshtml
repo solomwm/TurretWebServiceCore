@@ -1,0 +1,41 @@
+﻿@model TurretWebServiceCore.ViewModel.RegisterModel
+
+@{
+//Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>RegisterView</title>
+</head>
+<body>
+
+    <h2>Регистрация</h2>
+
+    <form asp-action="Register" asp-controller="Account" asp-antiforgery="true">
+        <div class="validation text-danger" asp-validation-summary="ModelOnly" />
+        <div class="form-group">
+            <label asp-for="Name">User Name:</label><br/>
+            <input type="text" asp-for="Name" />
+            <span asp-validation-for="Name" ></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="Password">Password:</label><br/>
+            <input type="password" asp-for="Password" />
+            <span asp-validation-for="Password" ></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="ConfirmPassword">Confirm Password:</label><br/>
+            <input type="password" asp-for="ConfirmPassword" />
+            <span asp-validation-for="ConfirmPassword" ></span>
+        </div>
+        <div class="form-group">
+            <input type="submit" value="Register" class="btn" />
+        </div>
+    </form>
+
+</body>
+</html>
