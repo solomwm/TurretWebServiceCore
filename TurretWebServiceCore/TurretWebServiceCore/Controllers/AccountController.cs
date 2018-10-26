@@ -34,10 +34,11 @@ namespace TurretWebServiceCore.Controllers
         {
             if (ModelState.IsValid)
             {
-                User user = await db.Users.FirstOrDefaultAsync(u => u.Name == model.Name && u.Password == model.Password);
+                User user = await db.Users.Include(u => u.Role)
+                    .FirstOrDefaultAsync(u => u.Name == model.Name && u.Password == model.Password);
                 if (user != null)
                 {
-                    await Authenticate(user.Name); // Аутентификация
+                    await Authenticate(user); // Аутентификация
                     return RedirectToAction("Index", "Home");
                 }
                 else ModelState.AddModelError("", "Некорректные логин и(или) пароль");
@@ -61,11 +62,14 @@ namespace TurretWebServiceCore.Controllers
                 if (user == null)
                 {
                     // добавляем пользователя в бд
-                    db.Users.Add(new User { Name = model.Name, Password = model.Password, MaxLevel = 0, MaxScore = 0 });
+                    user = new User { Name = model.Name, Password = model.Password, MaxLevel = 0, MaxScore = 0 };
+                    Role userRole = db.Roles.FirstOrDefault(r => r.Name == "user");
+                    if (userRole != null) SetUserRole(ref user, ref userRole);
+                    db.Users.Add(user);
                     await db.SaveChangesAsync();
                     
                     //аутентификация
-                    await Authenticate(model.Name);
+                    await Authenticate(user);
                     return RedirectToAction("Index", "Home");
                 }
                 else ModelState.AddModelError("", "Некорректные логин и(или) пароль");
@@ -79,12 +83,13 @@ namespace TurretWebServiceCore.Controllers
             return RedirectToAction("Login", "Account");
         }
 
-        private async Task Authenticate(string name)
+        private async Task Authenticate(User user)
         {
             // создаем один claim
             var claims = new List<Claim>()
             {
-                new Claim(ClaimsIdentity.DefaultNameClaimType, name)
+                new Claim(ClaimsIdentity.DefaultNameClaimType, user.Name),
+                new Claim(ClaimsIdentity.DefaultRoleClaimType, user.Role?.Name)
             };
             // создаем объект ClaimsIdentity
             ClaimsIdentity claimsIdentity = new ClaimsIdentity(claims, "ApplicationCookie", ClaimsIdentity.DefaultNameClaimType, 
@@ -115,7 +120,18 @@ namespace TurretWebServiceCore.Controllers
                 adminRole.Users.Add(admin);
 
                 //добавляем роли пользователям
-
+                var users = db.Users;
+                User user;
+                foreach (var u in users)
+                {
+                    if (u.Role == null)
+                    {
+                        user = u;
+                        SetUserRole(ref user, ref userRole);
+                        db.Entry(user).State = EntityState.Modified;
+                    }
+                }
+                //не забываем сохранить изменения в базе
                 db.SaveChanges();
             }
         }

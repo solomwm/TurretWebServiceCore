@@ -69,11 +69,10 @@ namespace TurretWebServiceCore.Controllers
         }
 
         // POST: api/Users
-        //[Authorize]
+        [Authorize(Roles = "administrator")]
         [HttpPost]
         [ProducesResponseType(typeof(void), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public IActionResult PostUser([FromBody]User user)
         {
             if (!ModelState.IsValid)
@@ -88,12 +87,11 @@ namespace TurretWebServiceCore.Controllers
         }
 
         // PUT: api/Users/5
-        //[Authorize]
+        [Authorize(Roles ="administrator")]
         [HttpPut("{id}")]
         [ProducesResponseType(typeof(void), StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public IActionResult PutUser(int id, [FromBody]User user)
         {
             if (!ModelState.IsValid)
@@ -128,11 +126,10 @@ namespace TurretWebServiceCore.Controllers
         }
 
         // DELETE: api/ApiWithActions/5
-        //[Authorize]
+        [Authorize(Roles = "administrator")]
         [HttpDelete("{id}")]
         [ProducesResponseType(typeof(User), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public IActionResult DeleteUser(int id)
         {
             User user = db.Users.Find(id);

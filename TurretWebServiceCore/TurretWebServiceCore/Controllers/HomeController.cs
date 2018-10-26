@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,13 +12,15 @@ namespace TurretWebServiceCore.Controllers
 {
     public class HomeController : Controller
     {
-        //[Authorize]
+        //[Authorize(Roles = "administrator, user")]
         public IActionResult Index()
         {
-            //return Content(User.Identity.Name);
+            //string role = User.FindFirst(x => x.Type == ClaimsIdentity.DefaultRoleClaimType).Value;
+            //return Content(User.Identity.Name + $"\nYour role is {role}");
             return View();
         }
 
+        //[Authorize(Roles = "administrator")]
         public IActionResult About()
         {
             ViewData["Message"] = "Your application description page.";
