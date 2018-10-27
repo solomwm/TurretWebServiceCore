@@ -51,7 +51,7 @@ namespace TurretWebServiceCore.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetByName(string name)
         {
-            var users = GetUsersByNameOrContain(name, UsersSearchParam.ByName);
+            List<User> users = GetUsersByNameOrContain(name, UsersSearchParam.ByName);
             if (users.Count == 0) return NotFound();
             return Ok(users);
         }
@@ -63,7 +63,7 @@ namespace TurretWebServiceCore.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetIfContain(string substring)
         {
-            var users = GetUsersByNameOrContain(substring, UsersSearchParam.IfContain);
+            List<User> users = GetUsersByNameOrContain(substring, UsersSearchParam.IfContain);
             if (users.Count == 0) return NotFound();
             return Ok(users);
         }
@@ -80,6 +80,12 @@ namespace TurretWebServiceCore.Controllers
                 return BadRequest(ModelState);
             }
 
+            if (db.Users.FirstOrDefault(u => u.Name == user.Name) != null)
+            {
+                ModelState.AddModelError("", "Пользователь с таким именем уже существует.");
+                return StatusCode(StatusCodes.Status409Conflict);
+            }
+
             db.Users.Add(user);
             db.SaveChanges();
 
@@ -87,13 +93,20 @@ namespace TurretWebServiceCore.Controllers
         }
 
         // PUT: api/Users/5
-        [Authorize(Roles ="administrator")]
+        [Authorize(Roles ="administrator, user")]
         [HttpPut("{id}")]
         [ProducesResponseType(typeof(void), StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public IActionResult PutUser(int id, [FromBody]User user)
         {
+            //Пользователь в роли "user" может редактировать только самого себя и не может других пользователей.
+            if (User.IsInRole("user") && !User.Identity.Name.Equals(user.Name))
+            {
+                return StatusCode(StatusCodes.Status403Forbidden);
+            }
+
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
