@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TurretWebServiceCore.Data;
 
-namespace TurretWebServiceCore.Migrations
+namespace Params.Migrations
 {
     [DbContext(typeof(TurretDBContext))]
     partial class TurretDBContextModelSnapshot : ModelSnapshot

@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Params;
 using TurretWebServiceCore.Data;
 using TurretWebServiceCore.Models;
+using TurretWebServiceCore.Tools;
 
 namespace TurretWebServiceCore.Controllers
 {
@@ -45,8 +46,7 @@ namespace TurretWebServiceCore.Controllers
         }
 
         // GET: api/Users/getbyname/{name}
-        [HttpGet]
-        [Route("getbyname/{name?}")]
+        [HttpGet("getbyname/{name?}")]
         [ProducesResponseType(typeof(User), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetByName(string name)
@@ -57,13 +57,38 @@ namespace TurretWebServiceCore.Controllers
         }
 
         // GET: api/Users/getifcontain/{substring}
-        [HttpGet]
-        [Route("getifcontain/{substring?}")]
+        [HttpGet("getifcontain/{substring?}")]
         [ProducesResponseType(typeof(User), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetIfContain(string substring)
         {
             List<User> users = GetUsersByNameOrContain(substring, UsersSearchParam.IfContain);
+            if (users.Count == 0) return NotFound();
+            return Ok(users);
+        }
+
+        // GET: api/Users/gettop/{topCount}
+        [HttpGet("gettop/{topCount?}/{sortParam?}")]
+        [ProducesResponseType(typeof(User), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult GetTop(int topCount, string sortParam = "s")
+        {
+            TopSortParam topSort;
+
+            switch (sortParam)
+            {
+                case "s":
+                    topSort = TopSortParam.SortByMaxScore;
+                    break;
+                case "l":
+                    topSort = TopSortParam.SortByMaxLevel;
+                    break;
+                default:
+                    topSort = TopSortParam.SortByMaxScore;
+                    break;
+            }
+
+            List<User> users = GetTop(topCount, topSort);
             if (users.Count == 0) return NotFound();
             return Ok(users);
         }
@@ -138,7 +163,7 @@ namespace TurretWebServiceCore.Controllers
             return StatusCode(StatusCodes.Status204NoContent);
         }
 
-        // DELETE: api/ApiWithActions/5
+        // DELETE: api/Users/5
         [Authorize(Roles = "administrator")]
         [HttpDelete("{id}")]
         [ProducesResponseType(typeof(User), StatusCodes.Status200OK)]
@@ -180,6 +205,27 @@ namespace TurretWebServiceCore.Controllers
                 case UsersSearchParam.IfContain: return db.Users.ToList().FindAll((u) => u.Name.IndexOf(nameOrContain, comparison) >= 0);
                 default: return null;
             }
+        }
+
+        private List<User> GetTop(int topCount, TopSortParam sortParam = TopSortParam.SortByMaxScore)
+        {
+            List<User> users = db.Users.ToList();
+            UserComparer comparer = null;
+
+            switch (sortParam)
+            {
+                case TopSortParam.SortByMaxScore:
+                    comparer = new UserScoreComparer();
+                    break;
+
+                case TopSortParam.SortByMaxLevel:
+                    comparer = new UserLevelComparer();
+                    break;
+            }
+
+            users.Sort(comparer);
+            if (topCount > users.Count) topCount = users.Count;
+            return users.GetRange(0, topCount);
         }
     }
 }
