@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Security.Claims;
 using System.Linq;
 using Params;
+using Microsoft.AspNetCore.Authorization;
 
 namespace TurretWebServiceCore.Controllers
 {
@@ -73,7 +74,46 @@ namespace TurretWebServiceCore.Controllers
                     await Authenticate(user);
                     return RedirectToAction("Index", "Home");
                 }
-                else ModelState.AddModelError("", "Некорректные логин и(или) пароль");
+                else ModelState.AddModelError("", "Пользователь с таким именем уже существует.");
+            }
+            return View(model);
+        }
+
+        [HttpGet]
+        [Authorize]
+        public IActionResult ChangePassword()
+        {
+            ChangePasswordModel model = new ChangePasswordModel { Name = User.Identity.Name };
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize]
+        public async Task<IActionResult> ChangePassword(ChangePasswordModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                if (!model.Name.Equals(User.Identity.Name))
+                {
+                    ModelState.AddModelError("", "Доступ запрещён."); //попытка изменить пароль другому пользователю пресекается.
+                    return View(model);
+                }
+
+                User user = await db.Users.FirstOrDefaultAsync(u => u.Name == model.Name);
+                if (user != null)
+                {
+                    if (user.Password == PasswordService.GetPasswordHash(model.OldPassword))
+                    {
+                        //меняем пароль пользователя на новый
+                        user.Password = PasswordService.GetPasswordHash(model.NewPassword);
+                        db.Entry(user).State = EntityState.Modified;
+                        await db.SaveChangesAsync();
+                        return RedirectToAction("Index", "Home");
+                    }
+                    else ModelState.AddModelError("", "Старый пароль введён неверно.");
+                }
+                else ModelState.AddModelError("", "Пользователь не найден.");
             }
             return View(model);
         }
