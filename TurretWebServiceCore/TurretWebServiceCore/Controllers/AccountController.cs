@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Security.Claims;
 using System.Linq;
+using Params;
 
 namespace TurretWebServiceCore.Controllers
 {
@@ -35,7 +36,7 @@ namespace TurretWebServiceCore.Controllers
             if (ModelState.IsValid)
             {
                 User user = await db.Users.Include(u => u.Role)
-                    .FirstOrDefaultAsync(u => u.Name == model.Name && u.Password == model.Password);
+                    .FirstOrDefaultAsync(u => u.Name == model.Name && u.Password == PasswordService.GetPasswordHash(model.Password));
                 if (user != null)
                 {
                     await Authenticate(user); // Аутентификация
@@ -62,7 +63,7 @@ namespace TurretWebServiceCore.Controllers
                 if (user == null)
                 {
                     // добавляем пользователя в бд
-                    user = new User { Name = model.Name, Password = model.Password, MaxLevel = 0, MaxScore = 0 };
+                    user = new User { Name = model.Name, Password = PasswordService.GetPasswordHash(model.Password), MaxLevel = 0, MaxScore = 0 };
                     Role userRole = db.Roles.FirstOrDefault(r => r.Name == "user");
                     if (userRole != null) SetUserRole(ref user, ref userRole);
                     db.Users.Add(user);
@@ -100,12 +101,21 @@ namespace TurretWebServiceCore.Controllers
 
         private void DatabaseInitialize()
         {
+            // если нет пользователей, добавляем их.
+            if (!db.Users.Any())
+            {
+                db.Users.Add(new User { Name = "Винни-Пух", Password = PasswordService.GetPasswordHash("123456"), MaxLevel = 0, MaxScore = 0 });
+                db.Users.Add(new User { Name = "Пятачок", Password = PasswordService.GetPasswordHash("123456"), MaxLevel = 0, MaxScore = 0 });
+                db.Users.Add(new User { Name = "Кролик", Password = PasswordService.GetPasswordHash("123456"), MaxLevel = 0, MaxScore = 0 });
+                db.SaveChanges();
+            }
+
             if (!db.Roles.Any())
             {
                 string adminRoleName = "administrator";
                 string userRoleName = "user";
                 string adminName = "admin";
-                string adminPassword = "admin";
+                string adminPassword = PasswordService.GetPasswordHash("admin");
 
                 // добавляем роли
                 Role adminRole = new Role() { Name = adminRoleName };
