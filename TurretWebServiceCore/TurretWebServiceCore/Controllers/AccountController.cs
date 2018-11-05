@@ -141,15 +141,6 @@ namespace TurretWebServiceCore.Controllers
 
         private void DatabaseInitialize()
         {
-            // если нет пользователей, добавляем их.
-            if (!db.Users.Any())
-            {
-                db.Users.Add(new User { Name = "Винни-Пух", Password = PasswordService.GetPasswordHash("123456"), MaxLevel = 0, MaxScore = 0 });
-                db.Users.Add(new User { Name = "Пятачок", Password = PasswordService.GetPasswordHash("123456"), MaxLevel = 0, MaxScore = 0 });
-                db.Users.Add(new User { Name = "Кролик", Password = PasswordService.GetPasswordHash("123456"), MaxLevel = 0, MaxScore = 0 });
-                db.SaveChanges();
-            }
-
             if (!db.Roles.Any())
             {
                 string adminRoleName = "administrator";
