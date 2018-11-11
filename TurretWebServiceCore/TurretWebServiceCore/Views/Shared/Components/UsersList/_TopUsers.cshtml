@@ -1,0 +1,29 @@
+﻿@model IEnumerable<TurretWebServiceCore.Models.User>
+
+<table class="table table-bordered">
+    <tr>
+        <td></td>
+        <td><h2>Top @Model.ToList().Count Users List</h2></td>
+        <td></td>
+        <td></td>
+    </tr>
+    <tr>
+        <td><h3>№</h3></td>
+        <td><h3>Name</h3></td>
+        <td><h3>Level</h3></td>
+        <td><h3>Score</h3></td>
+    </tr>
+    @{
+        int itemCount = 1;
+        foreach (var item in Model)
+        {
+            <tr>
+                <td><h4>@itemCount</h4></td>
+                <td><h4>@item.Name</h4></td>
+                <td><h4>@item.MaxLevel</h4></td>
+                <td><h4>@item.MaxScore</h4></td>
+            </tr>
+            itemCount++;
+        }
+    }
+</table>

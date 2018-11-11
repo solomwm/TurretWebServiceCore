@@ -1,4 +1,6 @@
-﻿@{
+﻿@model IEnumerable<TurretWebServiceCore.Models.User>
+
+@{
     ViewData["Title"] = "Home Page";
 }
 
@@ -63,6 +65,12 @@
         <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
         <span class="sr-only">Next</span>
     </a>
+</div>
+
+<div class="row center-block">
+    <hr />
+    @await Component.InvokeAsync("UsersList", new { topCount = 10});
+    <hr />
 </div>
 
 <div class="row">
