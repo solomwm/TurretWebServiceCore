@@ -69,11 +69,14 @@
 
 <div class="row center-block">
     <hr />
-    @await Component.InvokeAsync("UsersList", new { topCount = 10});
+    @if (User.Identity.IsAuthenticated) {  @await Component.InvokeAsync("WelcomeLogout", User.Identity.Name); }
+     else { @await Component.InvokeAsync("LoginRegister"); } 
+    @await Component.InvokeAsync("UsersList", new { topCount = 10 })
     <hr />
 </div>
+        
 
-<div class="row">
+@*<div class="row">
     <div class="col-md-3">
         <h2>Application uses</h2>
         <ul>
@@ -111,4 +114,4 @@
             <li><a href="https://go.microsoft.com/fwlink/?LinkID=398609">Publish to Microsoft Azure Web Apps</a></li>
         </ul>
     </div>
-</div>
+</div>*@
